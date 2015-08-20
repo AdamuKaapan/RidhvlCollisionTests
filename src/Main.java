@@ -191,7 +191,6 @@ public class Main extends HvlTemplateInteg2D {
 		return tr;
 	}
 
-	// TODO: Autocalc normal
 	private void applyBounce(HvlCoord start, HvlCoord end, HvlCoord segStart, HvlCoord segEnd) {
 
 		HvlCoord coll = raytrace(start, end, segStart, segEnd);
