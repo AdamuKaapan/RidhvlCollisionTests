@@ -20,8 +20,8 @@ public class Main extends HvlTemplateInteg2D {
 
 	private float playerX, playerY;
 
-	private float projX, projY;
-	private float projVelX, projVelY;
+	private HvlCoord projPos;
+	private HvlCoord projVel;
 
 	public static final float movementSpeed = 128.0f, projectileSpeed = 128.0f;
 
@@ -56,25 +56,21 @@ public class Main extends HvlTemplateInteg2D {
 
 		map = HvlLayeredTileMap.load("TestMap", true, 0, 0, 64, 64, getTexture(2));
 
+		projPos = new HvlCoord(0, 0);
+		projVel = new HvlCoord(0, 0);
 	}
 
 	@Override
 	public void update(float delta) {
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
-			projX = playerX;
-			projY = playerY;
-			HvlCoord dir = new HvlCoord(HvlCursor.getCursorX() + HvlCamera.getX() - (Display.getWidth() / 2) - playerX, HvlCursor.getCursorY()
+			projPos = new HvlCoord(playerX, playerY);
+			projVel = new HvlCoord(HvlCursor.getCursorX() + HvlCamera.getX() - (Display.getWidth() / 2) - playerX, HvlCursor.getCursorY()
 					+ HvlCamera.getY() - (Display.getHeight() / 2) - playerY).normalize();
-			projVelX = dir.x;
-			projVelY = dir.y;
 		}
 
-		int tileX = map.toTileX(projX);
-		int tileY = map.toTileY(projY);
-
-		HvlCoord tempPos = new HvlCoord(projX, projY);
-		HvlCoord tempVel = new HvlCoord(projVelX, projVelY);
+		int tileX = map.toTileX(projPos.x);
+		int tileY = map.toTileY(projPos.y);
 		
 		for (int x = -2; x < 3; x++) {
 			for (int y = -2; y < 3; y++) {
@@ -90,25 +86,25 @@ public class Main extends HvlTemplateInteg2D {
 				if (tile == null)
 					continue;
 
-				HvlCoord start = new HvlCoord(projX, projY);
-				HvlCoord end = new HvlCoord(projX + (projVelX * delta * projectileSpeed), projY + (projVelY * delta * projectileSpeed));
+				HvlCoord start = new HvlCoord(projPos.x, projPos.y);
+				HvlCoord end = new HvlCoord(projPos.x + (projVel.x * delta * projectileSpeed), projPos.y + (projVel.y * delta * projectileSpeed));
 
 				if (ul.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y)),
-							new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1)), tempPos, tempVel);
+							new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1)), projPos, projVel);
 				} else if (ur.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y)),
-							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)), tempPos, tempVel);
+							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)), projPos, projVel);
 				} else if (lr.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1)),
-							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y)), tempPos, tempVel);
+							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y)), projPos, projVel);
 				} else if (ll.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y)),
-							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)), tempPos, tempVel);
+							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)), projPos, projVel);
 				} else // Flat collision
 				{
 					if (x != 0 || y != 0) {
@@ -131,19 +127,13 @@ public class Main extends HvlTemplateInteg2D {
 							wallEnd = new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y));
 						}
 
-						applyBounce(start, end, wallStart, wallEnd, tempPos, tempVel);
+						applyBounce(start, end, wallStart, wallEnd, projPos, projVel);
 					}
 				}
 			}
 		}
-		
-		projX = tempPos.x;
-		projY = tempPos.y;
-		projVelX = tempVel.x;
-		projVelY = tempVel.y;
 
-		projX += projVelX * delta * projectileSpeed;
-		projY += projVelY * delta * projectileSpeed;
+		projPos.add(projVel.x * delta * projectileSpeed, projVel.y * delta * projectileSpeed);
 
 		float h1 = 0.0f, v1 = 0.0f;
 		if (Keyboard.isKeyDown(Keyboard.KEY_D))
@@ -168,7 +158,7 @@ public class Main extends HvlTemplateInteg2D {
 		map.draw(delta);
 		HvlPainter2D.hvlDrawQuad(playerX - 8, playerY - 8, 16, 16, Color.cyan);
 		// HvlPainter2D.hvlDrawQuad(x2 - 8, y2 - 8, 16, 16, Color.magenta);
-		HvlPainter2D.hvlDrawQuad(projX - 4, projY - 4, 8, 8, Color.pink);
+		HvlPainter2D.hvlDrawQuad(projPos.x - 4, projPos.y - 4, 8, 8, Color.pink);
 	}
 
 	private HvlCoord raytrace(HvlCoord start, HvlCoord end, HvlCoord segStart, HvlCoord segEnd) {
