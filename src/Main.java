@@ -73,6 +73,9 @@ public class Main extends HvlTemplateInteg2D {
 		int tileX = map.toTileX(projX);
 		int tileY = map.toTileY(projY);
 
+		HvlCoord tempPos = new HvlCoord(projX, projY);
+		HvlCoord tempVel = new HvlCoord(projVelX, projVelY);
+		
 		for (int x = -2; x < 3; x++) {
 			for (int y = -2; y < 3; y++) {
 
@@ -93,19 +96,19 @@ public class Main extends HvlTemplateInteg2D {
 				if (ul.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y)),
-							new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1)));
+							new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1)), tempPos, tempVel);
 				} else if (ur.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y)),
-							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)));
+							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)), tempPos, tempVel);
 				} else if (lr.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1)),
-							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y)));
+							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y)), tempPos, tempVel);
 				} else if (ll.contains(tile.getTile())) {
 
 					applyBounce(start, end, new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y)),
-							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)));
+							new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1)), tempPos, tempVel);
 				} else // Flat collision
 				{
 					if (x != 0 || y != 0) {
@@ -128,11 +131,16 @@ public class Main extends HvlTemplateInteg2D {
 							wallEnd = new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y));
 						}
 
-						applyBounce(start, end, wallStart, wallEnd);
+						applyBounce(start, end, wallStart, wallEnd, tempPos, tempVel);
 					}
 				}
 			}
 		}
+		
+		projX = tempPos.x;
+		projY = tempPos.y;
+		projVelX = tempVel.x;
+		projVelY = tempVel.y;
 
 		projX += projVelX * delta * projectileSpeed;
 		projY += projVelY * delta * projectileSpeed;
@@ -190,26 +198,26 @@ public class Main extends HvlTemplateInteg2D {
 		return tr;
 	}
 
-	private void applyBounce(HvlCoord start, HvlCoord end, HvlCoord segStart, HvlCoord segEnd) {
+	private void applyBounce(HvlCoord start, HvlCoord end, HvlCoord segStart, HvlCoord segEnd, HvlCoord pos, HvlCoord vel) {
 
 		HvlCoord coll = raytrace(start, end, segStart, segEnd);
 
 		if (coll != null) {
-			float angle = (float) Math.atan2(projY - coll.y, projX - coll.x);
+			float angle = (float) Math.atan2(pos.y - coll.y, pos.x - coll.x);
 
 			float normal = (float) ((Math.PI / 2) + Math.atan2(segEnd.y - segStart.y, segEnd.x - segStart.x) % Math.PI);
 
 			float angleOfReflection = normal - angle;
 
-			float vel = new HvlCoord(projVelX, projVelY).length();
+			float oldVel = new HvlCoord(vel.x, vel.y).length();
 
 			float newAngle = angle + 2 * angleOfReflection;
 
-			HvlCoord newDir = new HvlCoord((float) Math.cos(newAngle), (float) Math.sin(newAngle)).normalize().mult(vel);
-			projX = coll.x;
-			projY = coll.y;
-			projVelX = newDir.x;
-			projVelY = newDir.y;
+			HvlCoord newDir = new HvlCoord((float) Math.cos(newAngle), (float) Math.sin(newAngle)).normalize().mult(oldVel);
+			pos.x = coll.x;
+			pos.y = coll.y;
+			vel.x = newDir.x;
+			vel.y = newDir.y;
 		}
 	}
 }
