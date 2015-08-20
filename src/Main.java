@@ -29,9 +29,13 @@ public class Main extends HvlTemplateInteg2D {
 
 	static {
 		ul.add(25);
+		ul.add(28);
 		ur.add(26);
+		ur.add(29);
 		ll.add(33);
+		ll.add(36);
 		lr.add(34);
+		lr.add(37);
 	}
 
 	private HvlLayeredTileMap map;
@@ -105,26 +109,21 @@ public class Main extends HvlTemplateInteg2D {
 				} else // Flat collision
 				{
 					if (x != 0 || y != 0) {
-						int normal = 0;
 						HvlCoord wallStart = null, wallEnd = null;
 
 						if (x < 0) {
-							normal = 0;
 							wallStart = new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y));
 							wallEnd = new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1));
 						}
 						if (x > 0) {
-							normal = 4;
 							wallStart = new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y));
 							wallEnd = new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1));
 						}
 						if (y < 0) {
-							normal = 6;
 							wallStart = new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y + 1));
 							wallEnd = new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y + 1));
 						}
 						if (y > 0) {
-							normal = 2;
 							wallStart = new HvlCoord(map.toWorldX(tileX + x), map.toWorldY(tileY + y));
 							wallEnd = new HvlCoord(map.toWorldX(tileX + x + 1), map.toWorldY(tileY + y));
 						}
