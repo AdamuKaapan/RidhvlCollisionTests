@@ -1,10 +1,14 @@
 import org.newdawn.slick.Color;
 
+import com.osreboot.ridhvl.HvlColorUtil;
 import com.osreboot.ridhvl.HvlCoord;
+import com.osreboot.ridhvl.HvlMath;
 import com.osreboot.ridhvl.painter.painter2d.HvlPainter2D;
 
 
 public class Particle {
+	private Color color;
+	
 	private HvlCoord pos;
 	private HvlCoord vel;
 	
@@ -22,6 +26,8 @@ public class Particle {
 	
 	public void update(float delta)
 	{
+		color = HvlColorUtil.lerpColor(Color.blue, Color.green, pos.y / (16 * 64));
+		
 		try {
 			Main.applyCollision(delta, pos.addNew(4, 0), vel, 1.0f);
 			Main.applyCollision(delta, pos.addNew(-4, 0), vel, 1.0f);
@@ -35,6 +41,6 @@ public class Particle {
 	
 	public void draw(float delta)
 	{
-		HvlPainter2D.hvlDrawQuad(pos.x - 4, pos.y - 4, 8, 8, Color.magenta);
+		HvlPainter2D.hvlDrawQuad(pos.x - 4, pos.y - 4, 8, 8, color);
 	}
 }

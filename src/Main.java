@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
@@ -52,7 +53,7 @@ public class Main extends HvlTemplateInteg2D {
 	@Override
 	public void initialize() {
 		getTimer().setMaxDelta(HvlTimer.MD_TWENTIETH);
-		
+
 		getTextureLoader().loadResource("Curve");
 		getTextureLoader().loadResource("Slope");
 		getTextureLoader().loadResource("Tilemap");
@@ -66,7 +67,7 @@ public class Main extends HvlTemplateInteg2D {
 
 	@Override
 	public void update(float delta) {
-
+		
 		HvlCoord vel = new HvlCoord(HvlInputSeriesAction.HORIZONTAL.getCurrentOutput(), HvlInputSeriesAction.VERTICAL.getCurrentOutput()).normalize().fixNaN()
 				.mult(playerMovementSpeed);
 
@@ -83,9 +84,22 @@ public class Main extends HvlTemplateInteg2D {
 
 		playerPos.add(vel.multNew(delta));
 
-		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
-			parts.add(new Particle(new HvlCoord(playerPos.x, playerPos.y), new HvlCoord(HvlCursor.getCursorX() + HvlCamera.getX() - (Display.getWidth() / 2)
-					- playerPos.x, HvlCursor.getCursorY() + HvlCamera.getY() - (Display.getHeight() / 2) - playerPos.y).normalize().mult(projectileSpeed)));
+		if (Mouse.isButtonDown(0)) {
+			for (int i = 0; i < 8; i++) {
+				float mouseAngle = (float) Math.atan2(HvlCursor.getCursorY() + HvlCamera.getY() - (Display.getHeight() / 2) - playerPos.y, HvlCursor.getCursorX()
+						+ HvlCamera.getX() - (Display.getWidth() / 2) - playerPos.x);
+
+				float x = (float) Math.cos(i * (Math.PI / 4) + mouseAngle);
+				float y = (float) Math.sin(i * (Math.PI / 4) + mouseAngle);
+
+				parts.add(new Particle(new HvlCoord(playerPos.x, playerPos.y), new HvlCoord(x, y).normalize().mult(projectileSpeed)));
+				// parts.add(new Particle(new HvlCoord(playerPos.x,
+				// playerPos.y), new HvlCoord(HvlCursor.getCursorX() +
+				// HvlCamera.getX() - (Display.getWidth() / 2)
+				// - playerPos.x, HvlCursor.getCursorY() + HvlCamera.getY() -
+				// (Display.getHeight() / 2) -
+				// playerPos.y).normalize().mult(projectileSpeed)));
+			}
 		}
 
 		for (Particle p : parts) {
@@ -118,7 +132,7 @@ public class Main extends HvlTemplateInteg2D {
 			List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, pos.x, pos.y, 1, 1);
 
 			Map<HvlCoord, LineSegment> colls = new HashMap<>();
-			
+
 			for (LineSegment seg : segs) {
 				HvlCoord coll = HvlMath.raytrace(pos, new HvlCoord(pos.x + (vel.x * delta), pos.y + (vel.y * delta)), seg.start, seg.end);
 
@@ -132,10 +146,10 @@ public class Main extends HvlTemplateInteg2D {
 			final HvlCoord tempPos = pos.clone();
 
 			List<HvlCoord> keys = new ArrayList<>();
-			for (HvlCoord key : colls.keySet())
-			{
-				if (key == null) continue;
-				
+			for (HvlCoord key : colls.keySet()) {
+				if (key == null)
+					continue;
+
 				keys.add(key);
 			}
 
@@ -163,7 +177,7 @@ public class Main extends HvlTemplateInteg2D {
 			vel.x = newDir.x * bounce;
 			vel.y = newDir.y * bounce;
 			HvlCoord mod = vel.normalizeNew();
-			
+
 			pos.x = coll.x + (mod.x * 0.001f);
 			pos.y = coll.y + (mod.y * 0.001f);
 		}
