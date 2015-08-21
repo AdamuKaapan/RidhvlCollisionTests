@@ -1,4 +1,10 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -62,14 +68,13 @@ public class Main extends HvlTemplateInteg2D {
 				.mult(playerMovementSpeed);
 
 		List<LineSegment> lines = HvlTilemapCollisionUtil.getAllNearbySides(map, playerPos.x, playerPos.y, 1, 1);
-		
-		for (LineSegment seg : lines)
-		{
+
+		for (LineSegment seg : lines) {
 			HvlCoord coll = HvlMath.raytrace(playerPos, playerPos.addNew(vel.x * delta, vel.y * delta), seg.start, seg.end);
-			
-			if (coll != null)
-			{
-				vel = seg.end.subtractNew(seg.start).mult(coll.subtractNew(playerPos).dot(seg.end.subtractNew(seg.start))).normalize().fixNaN().mult(playerMovementSpeed);
+
+			if (coll != null) {
+				vel = seg.end.subtractNew(seg.start).mult(coll.subtractNew(playerPos).dot(seg.end.subtractNew(seg.start))).normalize().fixNaN()
+						.mult(playerMovementSpeed);
 			}
 		}
 
@@ -96,11 +101,10 @@ public class Main extends HvlTemplateInteg2D {
 		HvlPainter2D.hvlDrawQuad(playerPos.x - 8, playerPos.y - 8, 16, 16, Color.cyan);
 		// HvlPainter2D.hvlDrawQuad(x2 - 8, y2 - 8, 16, 16, Color.magenta);
 		HvlPainter2D.hvlDrawQuad(projPos.x - 4, projPos.y - 4, 8, 8, Color.magenta);
-		
+
 		List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, playerPos.x, playerPos.y, 1, 1);
-		
-		for (LineSegment seg : segs)
-		{
+
+		for (LineSegment seg : segs) {
 			HvlPainter2D.hvlDrawLine(seg.start.x, seg.start.y, seg.end.x, seg.end.y, Color.red);
 		}
 	}
@@ -108,26 +112,49 @@ public class Main extends HvlTemplateInteg2D {
 	private void applyCollision(float delta, HvlCoord pos, HvlCoord vel, float bounce) {
 		List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, pos.x, pos.y, 1, 1);
 
+		Map<HvlCoord, LineSegment> colls = new HashMap<>();
+
 		for (LineSegment seg : segs) {
 			HvlCoord coll = HvlMath.raytrace(pos, new HvlCoord(pos.x + (vel.x * delta), pos.y + (vel.y * delta)), seg.start, seg.end);
 
 			if (coll != null) {
-				float angle = (float) Math.atan2(pos.y - coll.y, pos.x - coll.x);
-
-				float normal = (float) ((Math.PI / 2) + Math.atan2(seg.end.y - seg.start.y, seg.end.x - seg.start.x) % Math.PI);
-
-				float angleOfReflection = normal - angle;
-
-				float oldVel = new HvlCoord(vel.x, vel.y).length();
-
-				float newAngle = angle + 2 * angleOfReflection;
-
-				HvlCoord newDir = new HvlCoord((float) Math.cos(newAngle), (float) Math.sin(newAngle)).normalize().mult(oldVel);
-				pos.x = coll.x;
-				pos.y = coll.y;
-				vel.x = newDir.x * bounce;
-				vel.y = newDir.y * bounce;
+				colls.put(coll, seg);
 			}
+		}
+		if (colls.isEmpty())
+			return;
+
+		final HvlCoord tempPos = pos.clone();
+
+		List<HvlCoord> keys = new ArrayList<>();
+		keys.addAll(colls.keySet());
+		
+		Collections.sort(keys, new Comparator<HvlCoord>() {
+			@Override
+			public int compare(HvlCoord arg0, HvlCoord arg1) {
+				return (int) Math.signum(HvlMath.distance(arg0.x, arg0.y, tempPos.x, tempPos.y) - HvlMath.distance(arg1.x, arg1.y, tempPos.x, tempPos.y));
+			}
+		});
+
+		HvlCoord coll = keys.get(0);
+		LineSegment seg = colls.get(coll);
+		
+		if (coll != null) {
+			float angle = (float) Math.atan2(pos.y - coll.y, pos.x - coll.x);
+
+			float normal = (float) ((Math.PI / 2) + Math.atan2(seg.end.y - seg.start.y, seg.end.x - seg.start.x) % Math.PI);
+
+			float angleOfReflection = normal - angle;
+
+			float oldVel = new HvlCoord(vel.x, vel.y).length();
+
+			float newAngle = angle + 2 * angleOfReflection;
+
+			HvlCoord newDir = new HvlCoord((float) Math.cos(newAngle), (float) Math.sin(newAngle)).normalize().mult(oldVel);
+			pos.x = coll.x;
+			pos.y = coll.y;
+			vel.x = newDir.x * bounce;
+			vel.y = newDir.y * bounce;
 		}
 	}
 
