@@ -11,6 +11,7 @@ import org.newdawn.slick.Color;
 
 import com.osreboot.ridhvl.HvlCoord;
 import com.osreboot.ridhvl.HvlMath;
+import com.osreboot.ridhvl.HvlTimer;
 import com.osreboot.ridhvl.display.collection.HvlDisplayModeDefault;
 import com.osreboot.ridhvl.input.HvlInputSeriesAction;
 import com.osreboot.ridhvl.painter.HvlCamera;
@@ -50,6 +51,8 @@ public class Main extends HvlTemplateInteg2D {
 
 	@Override
 	public void initialize() {
+		getTimer().setMaxDelta(HvlTimer.MD_TWENTIETH);
+		
 		getTextureLoader().loadResource("Curve");
 		getTextureLoader().loadResource("Slope");
 		getTextureLoader().loadResource("Tilemap");
