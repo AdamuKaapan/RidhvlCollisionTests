@@ -26,7 +26,7 @@ public class Particle {
 	
 	public void update(float delta)
 	{
-		color = HvlColorUtil.lerpColor(Color.blue, Color.green, pos.y / (16 * 64));
+		color = HvlColorUtil.lerpColor(Color.blue, Color.red, Math.min(3000, Math.max(0, (float)Main.parts.size()))/3000);
 		
 		try {
 			Main.applyCollision(delta, pos.addNew(4, 0), vel, 1.0f);

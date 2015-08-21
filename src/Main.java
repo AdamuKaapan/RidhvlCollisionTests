@@ -28,7 +28,7 @@ public class Main extends HvlTemplateInteg2D {
 
 	private HvlCoord playerPos;
 
-	private List<Particle> parts;
+	public static List<Particle> parts;
 	// private Particle part;
 	// private HvlCoord projPos;
 	// private HvlCoord projVel;
