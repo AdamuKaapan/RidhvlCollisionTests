@@ -41,7 +41,7 @@ public class Main extends HvlTemplateInteg2D {
 	private static HvlLayeredTileMap map;
 
 	public Main() {
-		super(24, 1280, 720, "Ridhvl Collision Tests", new HvlDisplayModeDefault());
+		super(300, 1280, 720, "Ridhvl Collision Tests", new HvlDisplayModeDefault());
 	}
 
 	public static void main(String[] args) {
@@ -159,8 +159,10 @@ public class Main extends HvlTemplateInteg2D {
 			HvlCoord newDir = new HvlCoord((float) Math.cos(newAngle), (float) Math.sin(newAngle)).normalize().mult(oldVel);
 			vel.x = newDir.x * bounce;
 			vel.y = newDir.y * bounce;
-			pos.x = coll.x + (vel.x * delta * 0.001f);
-			pos.y = coll.y + (vel.y * delta * 0.001f);
+			HvlCoord mod = vel.normalizeNew();
+			
+			pos.x = coll.x + (mod.x * 0.001f);
+			pos.y = coll.y + (mod.y * 0.001f);
 		}
 	}
 
