@@ -27,9 +27,9 @@ public class Main extends HvlTemplateInteg2D {
 	private HvlCoord playerPos;
 
 	private List<Particle> parts;
-//	private Particle part;
-//	private HvlCoord projPos;
-//	private HvlCoord projVel;
+	// private Particle part;
+	// private HvlCoord projPos;
+	// private HvlCoord projVel;
 
 	public static final float playerMovementSpeed = 128.0f, projectileSpeed = 1024.0f;
 
@@ -41,7 +41,7 @@ public class Main extends HvlTemplateInteg2D {
 	private static HvlLayeredTileMap map;
 
 	public Main() {
-		super(60, 1280, 720, "Ridhvl Collision Tests", new HvlDisplayModeDefault());
+		super(24, 1280, 720, "Ridhvl Collision Tests", new HvlDisplayModeDefault());
 	}
 
 	public static void main(String[] args) {
@@ -55,7 +55,7 @@ public class Main extends HvlTemplateInteg2D {
 		getTextureLoader().loadResource("Tilemap");
 
 		parts = new ArrayList<>();
-		
+
 		map = HvlLayeredTileMap.load("TestMap", true, 0, 0, 64, 64, getTexture(2));
 
 		playerPos = new HvlCoord((map.getTileWidth() / 2) + 5 * map.getTileWidth(), (map.getTileHeight() / 2) + 5 * map.getTileHeight());
@@ -81,12 +81,11 @@ public class Main extends HvlTemplateInteg2D {
 		playerPos.add(vel.multNew(delta));
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
-			parts.add(new Particle(new HvlCoord(playerPos.x, playerPos.y), new HvlCoord(HvlCursor.getCursorX() + HvlCamera.getX() - (Display.getWidth() / 2) - playerPos.x, HvlCursor.getCursorY()
-					+ HvlCamera.getY() - (Display.getHeight() / 2) - playerPos.y).normalize().mult(projectileSpeed)));
+			parts.add(new Particle(new HvlCoord(playerPos.x, playerPos.y), new HvlCoord(HvlCursor.getCursorX() + HvlCamera.getX() - (Display.getWidth() / 2)
+					- playerPos.x, HvlCursor.getCursorY() + HvlCamera.getY() - (Display.getHeight() / 2) - playerPos.y).normalize().mult(projectileSpeed)));
 		}
-		
-		for (Particle p : parts)
-		{
+
+		for (Particle p : parts) {
 			p.update(delta);
 		}
 
@@ -100,8 +99,7 @@ public class Main extends HvlTemplateInteg2D {
 		map.draw(delta);
 		HvlPainter2D.hvlDrawQuad(playerPos.x - 8, playerPos.y - 8, 16, 16, Color.cyan);
 		// HvlPainter2D.hvlDrawQuad(x2 - 8, y2 - 8, 16, 16, Color.magenta);
-		for (Particle p : parts)
-		{
+		for (Particle p : parts) {
 			p.draw(delta);
 		}
 
@@ -113,36 +111,41 @@ public class Main extends HvlTemplateInteg2D {
 	}
 
 	public static void applyCollision(float delta, HvlCoord pos, HvlCoord vel, float bounce) {
-		List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, pos.x, pos.y, 1, 1);
+		while (true) {
+			List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, pos.x, pos.y, 1, 1);
 
-		Map<HvlCoord, LineSegment> colls = new HashMap<>();
+			Map<HvlCoord, LineSegment> colls = new HashMap<>();
+			
+			for (LineSegment seg : segs) {
+				HvlCoord coll = HvlMath.raytrace(pos, new HvlCoord(pos.x + (vel.x * delta), pos.y + (vel.y * delta)), seg.start, seg.end);
 
-		for (LineSegment seg : segs) {
-			HvlCoord coll = HvlMath.raytrace(pos, new HvlCoord(pos.x + (vel.x * delta), pos.y + (vel.y * delta)), seg.start, seg.end);
-
-			if (coll != null) {
-				colls.put(coll, seg);
+				if (coll != null) {
+					colls.put(coll, seg);
+				}
 			}
-		}
-		if (colls.isEmpty())
-			return;
+			if (colls.isEmpty())
+				return;
 
-		final HvlCoord tempPos = pos.clone();
+			final HvlCoord tempPos = pos.clone();
 
-		List<HvlCoord> keys = new ArrayList<>();
-		keys.addAll(colls.keySet());
-		
-		Collections.sort(keys, new Comparator<HvlCoord>() {
-			@Override
-			public int compare(HvlCoord arg0, HvlCoord arg1) {
-				return (int) Math.signum(HvlMath.distance(arg0.x, arg0.y, tempPos.x, tempPos.y) - HvlMath.distance(arg1.x, arg1.y, tempPos.x, tempPos.y));
+			List<HvlCoord> keys = new ArrayList<>();
+			for (HvlCoord key : colls.keySet())
+			{
+				if (key == null) continue;
+				
+				keys.add(key);
 			}
-		});
 
-		HvlCoord coll = keys.get(0);
-		LineSegment seg = colls.get(coll);
-		
-		if (coll != null) {
+			Collections.sort(keys, new Comparator<HvlCoord>() {
+				@Override
+				public int compare(HvlCoord arg0, HvlCoord arg1) {
+					return (int) Math.signum(HvlMath.distance(arg0.x, arg0.y, tempPos.x, tempPos.y) - HvlMath.distance(arg1.x, arg1.y, tempPos.x, tempPos.y));
+				}
+			});
+
+			HvlCoord coll = keys.get(0);
+			LineSegment seg = colls.get(coll);
+
 			float angle = (float) Math.atan2(pos.y - coll.y, pos.x - coll.x);
 
 			float normal = (float) ((Math.PI / 2) + Math.atan2(seg.end.y - seg.start.y, seg.end.x - seg.start.x) % Math.PI);
@@ -154,10 +157,10 @@ public class Main extends HvlTemplateInteg2D {
 			float newAngle = angle + 2 * angleOfReflection;
 
 			HvlCoord newDir = new HvlCoord((float) Math.cos(newAngle), (float) Math.sin(newAngle)).normalize().mult(oldVel);
-			pos.x = coll.x;
-			pos.y = coll.y;
 			vel.x = newDir.x * bounce;
 			vel.y = newDir.y * bounce;
+			pos.x = coll.x + (vel.x * delta * 0.001f);
+			pos.y = coll.y + (vel.y * delta * 0.001f);
 		}
 	}
 
