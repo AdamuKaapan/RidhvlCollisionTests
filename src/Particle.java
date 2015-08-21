@@ -22,7 +22,11 @@ public class Particle {
 	
 	public void update(float delta)
 	{
-		Main.applyCollision(delta, pos, vel, 1.0f);
+		try {
+			Main.applyCollision(delta, pos, vel, 1.0f);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		pos.add(vel.x * delta, vel.y * delta);
 	}
 	

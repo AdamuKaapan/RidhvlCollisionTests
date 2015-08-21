@@ -41,7 +41,7 @@ public class Main extends HvlTemplateInteg2D {
 	private static HvlLayeredTileMap map;
 
 	public Main() {
-		super(300, 1280, 720, "Ridhvl Collision Tests", new HvlDisplayModeDefault());
+		super(60, 1280, 720, "Ridhvl Collision Tests", new HvlDisplayModeDefault());
 	}
 
 	public static void main(String[] args) {
@@ -110,8 +110,8 @@ public class Main extends HvlTemplateInteg2D {
 		}
 	}
 
-	public static void applyCollision(float delta, HvlCoord pos, HvlCoord vel, float bounce) {
-		while (true) {
+	public static void applyCollision(float delta, HvlCoord pos, HvlCoord vel, float bounce) throws Exception {
+		for (int i = 0; i < 100; i++) {
 			List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, pos.x, pos.y, 1, 1);
 
 			Map<HvlCoord, LineSegment> colls = new HashMap<>();
@@ -164,6 +164,7 @@ public class Main extends HvlTemplateInteg2D {
 			pos.x = coll.x + (mod.x * 0.001f);
 			pos.y = coll.y + (mod.y * 0.001f);
 		}
+		throw new Exception("Looped too many times.");
 	}
 
 	private LineSegment getCollisionIfAny(float delta, HvlCoord pos, HvlCoord vel, HvlCoord out) {
