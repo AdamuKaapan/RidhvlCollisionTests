@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,8 +26,10 @@ public class Main extends HvlTemplateInteg2D {
 
 	private HvlCoord playerPos;
 
-	private HvlCoord projPos;
-	private HvlCoord projVel;
+	private List<Particle> parts;
+//	private Particle part;
+//	private HvlCoord projPos;
+//	private HvlCoord projVel;
 
 	public static final float playerMovementSpeed = 128.0f, projectileSpeed = 1024.0f;
 
@@ -37,7 +38,7 @@ public class Main extends HvlTemplateInteg2D {
 		HvlTilemapCollisionUtil.registerCornerSet(28, 29, 36, 37);
 	}
 
-	private HvlLayeredTileMap map;
+	private static HvlLayeredTileMap map;
 
 	public Main() {
 		super(60, 1280, 720, "Ridhvl Collision Tests", new HvlDisplayModeDefault());
@@ -53,12 +54,11 @@ public class Main extends HvlTemplateInteg2D {
 		getTextureLoader().loadResource("Slope");
 		getTextureLoader().loadResource("Tilemap");
 
+		parts = new ArrayList<>();
+		
 		map = HvlLayeredTileMap.load("TestMap", true, 0, 0, 64, 64, getTexture(2));
 
 		playerPos = new HvlCoord((map.getTileWidth() / 2) + 5 * map.getTileWidth(), (map.getTileHeight() / 2) + 5 * map.getTileHeight());
-
-		projPos = new HvlCoord(0, 0);
-		projVel = new HvlCoord(0, 0);
 	}
 
 	@Override
@@ -81,14 +81,14 @@ public class Main extends HvlTemplateInteg2D {
 		playerPos.add(vel.multNew(delta));
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
-			projPos = new HvlCoord(playerPos.x, playerPos.y);
-			projVel = new HvlCoord(HvlCursor.getCursorX() + HvlCamera.getX() - (Display.getWidth() / 2) - playerPos.x, HvlCursor.getCursorY()
-					+ HvlCamera.getY() - (Display.getHeight() / 2) - playerPos.y).normalize().mult(projectileSpeed);
+			parts.add(new Particle(new HvlCoord(playerPos.x, playerPos.y), new HvlCoord(HvlCursor.getCursorX() + HvlCamera.getX() - (Display.getWidth() / 2) - playerPos.x, HvlCursor.getCursorY()
+					+ HvlCamera.getY() - (Display.getHeight() / 2) - playerPos.y).normalize().mult(projectileSpeed)));
 		}
-
-		applyCollision(delta, projPos, projVel, 1.0f);
-
-		projPos.add(projVel.x * delta, projVel.y * delta);
+		
+		for (Particle p : parts)
+		{
+			p.update(delta);
+		}
 
 		HvlCamera.setPosition(playerPos.x, playerPos.y);
 		HvlCamera.setAlignment(HvlCameraAlignment.CENTER);
@@ -100,7 +100,10 @@ public class Main extends HvlTemplateInteg2D {
 		map.draw(delta);
 		HvlPainter2D.hvlDrawQuad(playerPos.x - 8, playerPos.y - 8, 16, 16, Color.cyan);
 		// HvlPainter2D.hvlDrawQuad(x2 - 8, y2 - 8, 16, 16, Color.magenta);
-		HvlPainter2D.hvlDrawQuad(projPos.x - 4, projPos.y - 4, 8, 8, Color.magenta);
+		for (Particle p : parts)
+		{
+			p.draw(delta);
+		}
 
 		List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, playerPos.x, playerPos.y, 1, 1);
 
@@ -109,7 +112,7 @@ public class Main extends HvlTemplateInteg2D {
 		}
 	}
 
-	private void applyCollision(float delta, HvlCoord pos, HvlCoord vel, float bounce) {
+	public static void applyCollision(float delta, HvlCoord pos, HvlCoord vel, float bounce) {
 		List<LineSegment> segs = HvlTilemapCollisionUtil.getAllNearbySides(map, pos.x, pos.y, 1, 1);
 
 		Map<HvlCoord, LineSegment> colls = new HashMap<>();
